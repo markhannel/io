@@ -13,7 +13,8 @@ class h5video(object):
     def __enter__(self):
         self.f = h5py.File(self.filename, self.mode)
         self.keys = self.f['images/'].keys()
-        self.nframes = len(self.keys)
+        self.frames = self.f['images/'].values()
+        self.nframes = len(self.frames)
         self.image = self.rewind()
         self.dim = self.f['images/' + self.keys[0]].shape
         return self
@@ -23,7 +24,7 @@ class h5video(object):
 
     def get_image(self):
         try:
-            self.image = self.f['images/' + self.keys[self.index]]
+            self.image = self.frames[self.index]
             return self.image
         except KeyError:
             print 'Indexed frame is not present.'
@@ -37,7 +38,7 @@ class h5video(object):
 
     def next(self):
         self.index += 1
-        return self.image
+        return self.get_image()
 
     def goto(self, index):
         self.index = index
@@ -50,6 +51,10 @@ def example():
     bg = np.load('example_bg.npy')
 
     with h5video(filename) as vid:
+        plt.imshow(vid.frames[-30]/bg)
+        plt.gray()
+        plt.show()
+
         plt.imshow(vid.get_image()/bg)
         plt.gray()
         plt.show()
@@ -63,7 +68,6 @@ def example():
         print('Example timestamp: {}'.format(vid.get_time()))
         print('Dimension of image: {}'.format(vid.dim))
         print('Number of frames: {}'.format(vid.nframes))
-    
     
 if __name__ == '__main__':
     example()
