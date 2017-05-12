@@ -26,9 +26,9 @@ class h5video(object):
         try:
             self.image = self.frames[self.index]
             return self.image
-        except KeyError:
+        except IndexError:
             print 'Indexed frame is not present.'
-            raise KeyError
+            raise IndexError
             
     def get_time(self):
         return self.keys[self.index]
