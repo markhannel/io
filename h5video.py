@@ -52,6 +52,7 @@ class h5video(object):
 
     def rewind(self):
         self.index = 0
+        self.eof = False
         return self.get_image()
 
     def next(self):
