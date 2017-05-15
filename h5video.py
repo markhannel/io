@@ -1,6 +1,22 @@
 import numpy as np
 import h5py
 
+class TagArray(np.ndarray):
+
+    def __new__(cls, input_array, frame_no=None):
+        # Input array is an already formed ndarray instance
+        # We first cast to be our class type
+        obj = np.asarray(input_array).view(cls)
+        # add the new attribute to the created instance
+        obj.frame_no = frame_no
+        # Finally, we must return the newly created object:
+        return obj
+
+    def __array_finalize__(self, obj):
+        # see InfoArray.__array_finalize__ for comments
+        if obj is None: return
+        self.frame_no = getattr(obj, 'frame_no', None)
+
 class h5video(object):
     def __init__(self, filename, mode='r'):
         self.filename = filename
@@ -9,6 +25,7 @@ class h5video(object):
         self.index = None
         self.dim = None
         self.nframes = None
+        self.eof = False
 
     def __enter__(self):
         self.f = h5py.File(self.filename, self.mode)
@@ -27,7 +44,7 @@ class h5video(object):
             self.image = self.frames[self.index]
             return self.image
         except IndexError:
-            print 'Indexed frame is not present.'
+            print "Index is out of range."
             raise IndexError
             
     def get_time(self):
@@ -38,6 +55,10 @@ class h5video(object):
         return self.get_image()
 
     def next(self):
+        if self.eof:
+            return None
+        if self.index == self.nframes-2:
+            self.eof = True
         self.index += 1
         return self.get_image()
 
